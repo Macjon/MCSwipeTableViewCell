@@ -110,5 +110,14 @@ namespace MonoTouch.MCSwipeTableViewCell
 
         [Export("swipeToOriginWithCompletion:")]
         void SwipeToOriginWithCompletion(SwipeCompletion completion);
+
+        [Export("withoutSwipingBackToOrigin")]
+        bool WithoutSwipingBackToOrigin { get; set; }
+
+        [Export("hideContentViewOnDrag")]
+        bool HideContentViewOnDrag { get; set; }
+
+        [Export("makeViewTransparentOnSwipe")]
+        bool MakeViewTransparentOnSwipe { get; set; }
     }
 }

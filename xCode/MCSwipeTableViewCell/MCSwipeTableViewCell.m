@@ -269,12 +269,13 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
     if (state == UIGestureRecognizerStateBegan || state == UIGestureRecognizerStateChanged) {
         _dragging = YES;
         
-        [self setupSwipingView];
-        
         CGPoint center = {_contentScreenshotView.center.x + translation.x, _contentScreenshotView.center.y};
         _contentScreenshotView.center = center;
         [self animateWithOffset:CGRectGetMinX(_contentScreenshotView.frame)];
         [gesture setTranslation:CGPointZero inView:self];
+        
+        if (_makeViewTransparentOnSwipe)
+            _contentScreenshotView.alpha = 1 - percentage;
         
         // Notifying the delegate that we are dragging with an offset percentage.
         if ([_delegate respondsToSelector:@selector(swipeTableViewCell:didSwipeWithPercentage:)]) {
@@ -341,6 +342,10 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
             if (point.x > 0 && !_modeForState1 && !_modeForState2) {
                 return NO;
             }
+            
+            [self setupSwipingView];
+            
+            self.contentView.hidden = _hideContentViewOnDrag;
             
             // We notify the delegate that we just started dragging
             if ([_delegate respondsToSelector:@selector(swipeTableViewCellDidStartSwiping:)]) {
@@ -587,14 +592,18 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
     if (color) {
         [_colorIndicatorView setBackgroundColor:color];
     }
-    
-    [UIView animateWithDuration:duration delay:0 options:(UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionAllowUserInteraction) animations:^{
-        _contentScreenshotView.frame = frame;
-        _slidingView.alpha = 0;
-        [self slideViewWithPercentage:percentage view:_activeView isDragging:self.shouldAnimateIcons];
-    } completion:^(BOOL finished) {
+
+    if (!_withoutSwipingBackToOrigin) {
+        [UIView animateWithDuration:duration delay:0 options:(UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionAllowUserInteraction) animations:^{
+            _contentScreenshotView.frame = frame;
+            _slidingView.alpha = 0;
+            [self slideViewWithPercentage:percentage view:_activeView isDragging:self.shouldAnimateIcons];
+        } completion:^(BOOL finished) {
+            [self executeCompletionBlock];
+        }];
+    } else {
         [self executeCompletionBlock];
-    }];
+    }
 }
 
 - (void)swipeToOriginWithCompletion:(void(^)(void))completion {
@@ -607,6 +616,7 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
             CGRect frame = _contentScreenshotView.frame;
             frame.origin.x = 0;
             _contentScreenshotView.frame = frame;
+            _contentScreenshotView.alpha = 1;
             
             // Clearing the indicator view
             _colorIndicatorView.backgroundColor = self.defaultColor;
@@ -618,7 +628,7 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
             
             _isExited = NO;
             [self uninstallSwipingView];
-            
+            self.contentView.hidden = false;
             if (completion) {
                 completion();
             }
@@ -631,6 +641,7 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
             CGRect frame = _contentScreenshotView.frame;
             frame.origin.x = -bounceDistance;
             _contentScreenshotView.frame = frame;
+            _contentScreenshotView.alpha = 1;
             
             _slidingView.alpha = 0;
             [self slideViewWithPercentage:0 view:_activeView isDragging:NO];
@@ -653,7 +664,7 @@ typedef NS_ENUM(NSUInteger, MCSwipeTableViewCellDirection) {
                 
                 _isExited = NO;
                 [self uninstallSwipingView];
-                
+                self.contentView.hidden = false;
                 if (completion) {
                     completion();
                 }

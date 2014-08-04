@@ -151,6 +151,15 @@ typedef void (^MCSwipeCompletionBlock)(MCSwipeTableViewCell *cell, MCSwipeTableV
 /** Boolean to enable/disable the animation of the view during the swipe.  */
 @property (nonatomic, assign, readwrite) BOOL shouldAnimateIcons;
 
+/** Boolean to enable/disable the animation to return to it's origin  */
+@property (nonatomic, assign, readwrite) BOOL withoutSwipingBackToOrigin;
+
+/** Boolean to enable/disable the hiding of the contentview during the swipe  */
+@property (nonatomic, assign, readwrite) BOOL hideContentViewOnDrag;
+
+/** Boolean to enable/disable the transparency of the top imageview during the swipe  */
+@property (nonatomic, assign, readwrite) BOOL makeViewTransparentOnSwipe;
+
 /**
  *  Configures the properties of a cell.
  *
